@@ -13,12 +13,12 @@ DEFAULTS = {
     "PatchCraft": {"ckpt": "/content/sidbench/weights/rptc/RPTC.pth", "size": 256, "batch": 64},
     "CNNDetect": {"ckpt": "/content/sidbench/weights/cnndetect/blur_jpg_prob0.1.pth", "size": 256, "batch": 64},
 }
-# RPTC 的对外展示名
+
 MODEL_NAME_MAP = {"PatchCraft": "RPTC"}
 
 def run_one(model, data_path, csv_dir, threads, overrides):
     cfg = DEFAULTS[model].copy()
-    # 允许覆盖：--Rineckpt / --Rinesize / --DeFakesize / ...
+    # overlay allowed：--Rineckpt / --Rinesize / --DeFakesize / ...
     for k, v in list(overrides.items()):
         if v and k.lower().startswith(model.lower()):
             key = k[len(model):]; key = key[0].lower() + key[1:]
@@ -41,11 +41,11 @@ def run_one(model, data_path, csv_dir, threads, overrides):
     return out_csv
 
 def merge_csv(csv_paths, out_csv):
-    # 读入各模型 CSV 并合并：分数、标签(>0.5=1)、平均分、多数投票
+    # Read in the CSV files of each model and merge them: scores, labels (>0.5 = 1), average scores, majority votes
     by_img, order = {}, []
     for p in csv_paths:
         m = os.path.basename(p).split("_", 1)[1].split(".")[0]     # dimd / rine / defake / patchcraft / cnndetect
-        m = {"rptc":"PatchCraft"}.get(m, m.capitalize())            # 统一展示名
+        m = {"rptc":"PatchCraft"}.get(m, m.capitalize())           
         order.append(m)
         with open(p, newline="") as f:
             for row in csv.DictReader(f):
@@ -73,21 +73,21 @@ if __name__ == "__main__":
     ap.add_argument("--dataPath", required=True)
     ap.add_argument("--outDir", default="/content/sidbench/multi_out")
     ap.add_argument("--numThreads", type=int, default=2)
-    # 可跳过
+    
     for m in ["DIMD","Rine","DeFake","PatchCraft","CNNDetect"]:
         ap.add_argument(f"--skip{m}", action="store_true")
-    # 覆盖 ckpt/尺寸/额外路径
+    # Cover ckpt/size/additional paths
     ap.add_argument("--DIMDckpt"); ap.add_argument("--Rineckpt")
     ap.add_argument("--DeFakeckpt"); ap.add_argument("--DeFakedefakeClipEncoderPath"); ap.add_argument("--DeFakedefakeBlipPath")
     ap.add_argument("--PatchCraftckpt"); ap.add_argument("--CNNDetectckpt")
     ap.add_argument("--DIMDsize", type=int); ap.add_argument("--Rinesize", type=int)
     ap.add_argument("--DeFakesize", type=int); ap.add_argument("--PatchCraftsize", type=int); ap.add_argument("--CNNDetectsize", type=int)
-    # 如需保留单模型 CSV，则加这个开关
+    # If you want to keep the single model CSV file, then enable this switch to override the ckpt/size/extra path.
     ap.add_argument("--keepPerModel", action="store_true")
 
     args = ap.parse_args()
 
-    # 单模型 CSV 目录：默认用临时目录，合并后删除；若 keepPerModel 则用 outDir
+    # Single model CSV directory: By default, uses the temporary directory and deletes it after merging; if keepPerModel is set, uses outDir
     tmpdir = None
     if args.keepPerModel:
         csv_dir = args.outDir
@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
     merged = os.path.join(args.outDir, "results_combined.csv")
     merge_csv(csvs, merged)
-    # 自动清理单模型 CSV
+    # Automatically clean the CSV of a single model
     if tmpdir: shutil.rmtree(tmpdir, ignore_errors=True)
     print("Done. Combined CSV:", merged)
 
