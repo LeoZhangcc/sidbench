@@ -1,0 +1,18 @@
+numpy==2.1.1
+scipy==1.13.1
+scikit-learn==1.5.1
+Pillow==10.4.0
+matplotlib==3.9.0
+tqdm==4.66.4
+ftfy==6.2.0
+regex==2024.7.24
+blobfile==2.1.1
+opencv-python-headless<5
+timm==0.9.12
+
+# 关键组合（Py3.12 有官方 wheels）
+transformers==4.42.4
+tokenizers==0.19.1
+
+# 如非必要，先别装（与 Torch 版本敏感）
+# fairscale==0.4.13
